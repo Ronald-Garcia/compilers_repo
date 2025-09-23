@@ -9,7 +9,7 @@ class Location;
 class Interpreter {
 private:
   Node *m_ast;
-
+  
 public:
   Interpreter(Node *ast_to_adopt);
   ~Interpreter();
@@ -19,8 +19,12 @@ public:
 
 private:
   // TODO: private member functions
-  void analyze_recurse(Node* cur_ast_node, Environment& env);
-  Value execute_recurse(Node* cur_ast_node, Environment& env);
+  void analyze_recurse(Node* cur_ast_node, Environment* env);
+  Value execute_recurse(Node* cur_ast_node, Environment* env);
+  static Value intrinsic_print(Value args[], unsigned num_args,  const Location &loc, Interpreter* interp);
+  static Value intrinsic_println(Value args[], unsigned num_args,  const Location &loc, Interpreter* interp);
+  static Value intrinsic_readint(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+
 };
 
 #endif // INTERP_H

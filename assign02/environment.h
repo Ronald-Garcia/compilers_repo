@@ -27,6 +27,10 @@ public:
   Value* get_variable(std::string name);
 
   int assign_variable(std::string name, Value& val);
+
+  Value* get_local_variable(std::string name);
+
+  void bind(std::string name, Value val);
   
 };
 

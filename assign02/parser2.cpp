@@ -82,8 +82,10 @@ Node *Parser2::parse_Stmt() {
     // Stmt →       if ( A ) { SList }                     -- if stmt
     // Stmt →       if ( A ) { SList } else { SList }      -- if/else stmt 
 
+    
     std::unique_ptr<Node> if_statement(new Node(AST_IF));
 
+    expect_and_discard(TOK_IF);
     expect_and_discard(TOK_LPAREN);
 
     if_statement->append_kid(parse_A());
@@ -99,6 +101,7 @@ Node *Parser2::parse_Stmt() {
     Node* else_check = m_lexer->peek();
 
     if (else_check != nullptr && else_check->get_tag() == TOK_ELSE) {
+      expect_and_discard(TOK_ELSE);
       expect_and_discard(TOK_LBRACE);
       if_statement->append_kid(parse_SList());
       expect_and_discard(TOK_RBRACE);
@@ -108,6 +111,7 @@ Node *Parser2::parse_Stmt() {
   } else if (next_tag == TOK_WHILE) {
   // Stmt →       while ( A ) { SList }                  -- while loop
 
+    expect_and_discard(TOK_WHILE);
     std::unique_ptr<Node> while_statement(new Node(AST_WHILE));
 
     expect_and_discard(TOK_LPAREN);
@@ -528,7 +532,7 @@ Node *Parser2::parse_L() {
 
   std::unique_ptr<Node> operand(parse_R());
 
-  r.reset(new Node(ast_tag, {operand.release(), r.release()}));
+  r.reset(new Node(ast_tag, {r.release(), operand.release()}));
 
   r->set_loc(logical_operation->get_loc());
 
