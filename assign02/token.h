@@ -14,6 +14,8 @@ enum TokenKind {
   TOK_LPAREN,
   TOK_RPAREN,
   TOK_SEMICOLON,
+  
+  // ASSIGN01
   TOK_ASSIGNMENT,
   TOK_OR,
   TOK_AND,
@@ -23,7 +25,17 @@ enum TokenKind {
   TOK_GREATER_THAN_EQUAL,
   TOK_EQUAL,
   TOK_NOT_EQUAL,
-  TOK_VARIABLE
+  TOK_VARIABLE,
+
+  // ASSIGN02
+  TOK_FUNCTION,
+  TOK_IF,
+  TOK_ELSE,
+  TOK_WHILE,
+
+  TOK_LBRACE,
+  TOK_RBRACE,
+  TOK_COMMA,
   // add members for additional kinds of tokens
 };
 

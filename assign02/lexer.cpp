@@ -125,6 +125,14 @@ Node *Lexer::read_token() {
 
     if (tok->get_str()==std::string("var")) {
       tok->set_tag(TOK_VARIABLE);
+    } else if (tok->get_str() == std::string("function")) {
+      tok->set_tag(TOK_FUNCTION);
+    } else if (tok->get_str() == std::string("if")) {
+      tok->set_tag(TOK_IF);
+    } else if (tok->get_str() == std::string("else")) {
+      tok->set_tag(TOK_ELSE);
+    } else if (tok->get_str() == std::string("while")) {
+      tok->set_tag(TOK_WHILE);
     }
  
 
@@ -145,6 +153,12 @@ Node *Lexer::read_token() {
       return token_create(TOK_LPAREN, lexeme, line, col);
     case ')':
       return token_create(TOK_RPAREN, lexeme, line, col);
+    case '{':
+      return token_create(TOK_LBRACE, lexeme, line, col);
+    case '}':
+      return token_create(TOK_RBRACE, lexeme, line, col);
+    case ',':
+      return token_create(TOK_COMMA, lexeme, line, col);
     case ';':
       return token_create(TOK_SEMICOLON, lexeme, line, col);
     case '|':

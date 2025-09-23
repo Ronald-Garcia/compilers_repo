@@ -48,7 +48,7 @@ Node *Parser2::parse_Unit() {
 
   std::unique_ptr<Node> unit(new Node(AST_UNIT));
   for (;;) {
-    unit->append_kid(parse_Stmt());
+    unit->append_kid(parse_TStmt());
     if (m_lexer->peek() == nullptr)
       break;
   }
@@ -71,19 +71,241 @@ Node *Parser2::parse_Stmt() {
   // Stmt → var ident ;
   if (next_tag == TOK_VARIABLE) {
     std::unique_ptr<Node> vardef(new Node(AST_VARDEF));
-    std::unique_ptr<Node> vardef_lexer(expect(static_cast<enum TokenKind>(TOK_VARIABLE)));
+    std::unique_ptr<Node> vardunitef_lexer(expect(static_cast<enum TokenKind>(TOK_VARIABLE)));
     std::unique_ptr<Node> name(expect(static_cast<enum TokenKind>(TOK_IDENTIFIER)));
     name->set_tag(AST_VARREF);
     vardef->append_kid(name.release());
     s->append_kid(vardef.release());
 
     expect_and_discard(TOK_SEMICOLON);
+  } else if (next_tag == TOK_IF) {
+    // Stmt →       if ( A ) { SList }                     -- if stmt
+    // Stmt →       if ( A ) { SList } else { SList }      -- if/else stmt 
+
+    std::unique_ptr<Node> if_statement(new Node(AST_IF));
+
+    expect_and_discard(TOK_LPAREN);
+
+    if_statement->append_kid(parse_A());
+
+    expect_and_discard(TOK_RPAREN);
+
+    expect_and_discard(TOK_LBRACE);
+
+    if_statement->append_kid(parse_SList());
+
+    expect_and_discard(TOK_RBRACE);
+
+    Node* else_check = m_lexer->peek();
+
+    if (else_check != nullptr && else_check->get_tag() == TOK_ELSE) {
+      expect_and_discard(TOK_LBRACE);
+      if_statement->append_kid(parse_SList());
+      expect_and_discard(TOK_RBRACE);
+    }
+
+    s->append_kid(if_statement.release());
+  } else if (next_tag == TOK_WHILE) {
+  // Stmt →       while ( A ) { SList }                  -- while loop
+
+    std::unique_ptr<Node> while_statement(new Node(AST_WHILE));
+
+    expect_and_discard(TOK_LPAREN);
+    while_statement->append_kid(parse_A());
+
+    expect_and_discard(TOK_RPAREN);
+
+    expect_and_discard(TOK_LBRACE);
+    while_statement->append_kid(parse_SList());
+    expect_and_discard(TOK_RBRACE);
+    s->append_kid(while_statement.release());
   } else {
-    s->append_kid(parse_A());
-    expect_and_discard(TOK_SEMICOLON);
+        s->append_kid(parse_A());
+        expect_and_discard(TOK_SEMICOLON);
   }
 
+
+
+
   return s.release();
+}
+
+Node *Parser2::parse_TStmt() { 
+
+  Node *next_tok = m_lexer->peek();
+
+  if (next_tok == nullptr) {
+    SyntaxError::raise(m_lexer->get_current_loc(), "Unexpected end of input looking for statement");
+  }
+
+  int next_tag = next_tok->get_tag();
+  
+
+  // TStmt -> Func
+  if (next_tag == TOK_FUNCTION) {
+    expect_and_discard(TOK_FUNCTION);
+
+    return parse_Func();
+  }
+    
+
+
+  return parse_Stmt();
+}
+
+Node *Parser2::parse_Func() {
+
+  // Func -> function ident ( OptPList ) { SList }
+  std::unique_ptr<Node> func_node(new Node(AST_FUNC));
+
+  std::unique_ptr<Node> ident(expect(static_cast<enum TokenKind>(TOK_IDENTIFIER)));
+
+  if (ident == nullptr) {
+    SyntaxError::raise(m_lexer->get_current_loc(), "Unexpected end of input looking for identifier."); 
+  }
+
+  ident->set_tag(AST_VARREF);
+
+  func_node->append_kid(ident.release());
+  expect_and_discard(TOK_LPAREN);
+
+  auto plist = parse_OptPList();
+
+  if (plist != nullptr) {
+    func_node->append_kid(plist);
+  }
+
+  expect_and_discard(TOK_RPAREN);
+
+  expect_and_discard(TOK_LBRACE);
+  func_node->append_kid(parse_SList());
+  expect_and_discard(TOK_RBRACE);
+
+  return func_node.release();
+}
+
+Node *Parser2::parse_OptPList() {
+
+
+  Node *next_tok = m_lexer->peek();
+
+  if (next_tok== nullptr) {
+    SyntaxError::raise(m_lexer->get_current_loc(), "Unexpected end of input looking for PList or RBRACE"); 
+  }
+
+  int next_tag = next_tok->get_tag();
+
+
+  // OptPList -> epsilon
+  if (next_tag == TOK_RPAREN) {
+    return nullptr;
+  } 
+
+  // OptPList -> PList
+
+  return parse_PList();
+
+}
+
+
+Node *Parser2::parse_OptArgList() {
+
+
+  Node *next_tok = m_lexer->peek();
+
+  if (next_tok== nullptr) {
+    SyntaxError::raise(m_lexer->get_current_loc(), "Unexpected end of input looking for ArgList or RPAREN"); 
+  }
+
+  int next_tag = next_tok->get_tag();
+
+
+  // OptArgList -> epsilon
+  if (next_tag == TOK_RPAREN) {
+    return nullptr;
+  } 
+
+  // OptArgList -> ArgList
+
+  return parse_ArgList();
+}
+
+Node *Parser2::parse_ArgList() {
+
+  std::unique_ptr<Node> arglist(new Node(AST_ARGLIST));
+
+  Node *next_tok = m_lexer->peek();
+  if (next_tok == nullptr) {
+    SyntaxError::raise(m_lexer->get_current_loc(), "Unexpected end of input looking for L or ArgList"); 
+  }  
+
+
+  // PList -> ident , PList
+  for (;;) {
+    std::unique_ptr<Node> L(parse_L());
+
+    arglist->append_kid(L.release());
+    Node *cur_next_tok = m_lexer->peek();
+    if (cur_next_tok == nullptr ) {
+      SyntaxError::raise(m_lexer->get_current_loc(), "Unexpected end of input looking for identifier or PList"); 
+    }
+
+    int cur_next_tag = cur_next_tok->get_tag();
+
+    if (cur_next_tag != TOK_COMMA) {
+      break;
+    }
+    expect_and_discard(TOK_COMMA);
+  }
+  return arglist.release();
+}
+
+Node *Parser2::parse_SList() {
+
+  // SList -> Stmt
+  // SList -> Stmt SList
+  std::unique_ptr<Node> slist(new Node(AST_STATEMENT_LIST));
+  for (;;) {
+    slist->append_kid(parse_Stmt());
+    if (m_lexer->peek()->get_tag() == TOK_RBRACE)
+      break;
+  }
+
+  return slist.release();
+
+}
+
+Node *Parser2::parse_PList() {
+
+  std::unique_ptr<Node> plist(new Node(AST_PARAMETER_LIST));
+
+  Node *next_tok = m_lexer->peek();
+  if (next_tok == nullptr) {
+    SyntaxError::raise(m_lexer->get_current_loc(), "Unexpected end of input looking for identifier or PList"); 
+  }  
+
+
+  // PList -> ident , PList
+  for (;;) {
+    std::unique_ptr<Node> ident(expect(static_cast<enum TokenKind>(TOK_IDENTIFIER)));
+
+    ident->set_tag(AST_VARREF);
+
+    plist->append_kid(ident.release());
+    Node *cur_next_tok = m_lexer->peek();
+    if (cur_next_tok == nullptr ) {
+      SyntaxError::raise(m_lexer->get_current_loc(), "Unexpected end of input looking for identifier or PList"); 
+    }
+
+    int cur_next_tag = cur_next_tok->get_tag();
+
+    if (cur_next_tag != TOK_COMMA) {
+
+      break;
+    }
+    expect_and_discard(TOK_COMMA);
+  }
+  return plist.release();
 }
 
 Node *Parser2::parse_E() {
@@ -191,9 +413,31 @@ Node *Parser2::parse_F() {
     std::unique_ptr<Node> tok(expect(static_cast<enum TokenKind>(tag)));
     int ast_tag = tag == TOK_INTEGER_LITERAL ? AST_INT_LITERAL : AST_VARREF;
     std::unique_ptr<Node> ast(new Node(ast_tag));
+
+    Node* cur_next_node = m_lexer->peek();
+
+    if (cur_next_node == nullptr) {
+      error_at_current_loc("Unexpected end of input looking for primary expression");
+    }
+
+    if (cur_next_node->get_tag() == TOK_LPAREN) {
+      expect_and_discard(TOK_LPAREN);
+
+      std::unique_ptr<Node> func_call(new Node(AST_FNCALL));
+      ast->set_str(tok->get_str());
+      ast->set_loc(tok->get_loc());
+
+      func_call->append_kid(ast.release());
+
+      func_call->append_kid(parse_OptArgList());
+
+      expect_and_discard(TOK_RPAREN);
+      return func_call.release();
+    }
     ast->set_str(tok->get_str());
     ast->set_loc(tok->get_loc());
     return ast.release();
+
   } else if (tag == TOK_LPAREN) {
     // F -> ^ ( E )
     expect_and_discard(TOK_LPAREN);

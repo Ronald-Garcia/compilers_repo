@@ -23,7 +23,14 @@ enum ASTKind {
   AST_EQ,
   AST_NOT_EQ,
   AST_VARDEF,
-  
+
+  AST_FUNC,
+  AST_PARAMETER_LIST,
+  AST_STATEMENT_LIST,
+  AST_IF,
+  AST_WHILE,
+  AST_FNCALL,
+  AST_ARGLIST,
 
   // add members for other AST node kinds
 };
