@@ -9,14 +9,16 @@ b = 99;
 c = 101;
 d = 103;
 
-if (a) {
+while (b) {
   var b;
   b = 65;
-  if (a) {
+  b = b - 1;
+  while (a) {
     var c;
     c = 66;
     if (a) {
       d = 67;
+      a = a - 1;
     }
   }
 }

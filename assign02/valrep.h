@@ -3,6 +3,8 @@
 
 #include <cassert>
 class Function;
+class String;
+class Array;
 
 // A "ValRep" (value representation) is a type used as
 // a dynamically-allocated object serving as the representation
@@ -11,6 +13,8 @@ class Function;
 
 enum ValRepKind {
   VALREP_FUNCTION,
+  VALREP_STRING,
+  VALREP_ARRAY
   // other kinds of valreps (e.g., vector, string, etc.) could be added
 };
 
@@ -45,6 +49,10 @@ public:
   // the actual derived type (e.g., Function). Obviously, the caller
   // should only do this after checking the ValRepKind value
   Function *as_function();
+
+  String *as_string();
+
+  Array *as_array();
 };
 
 #endif

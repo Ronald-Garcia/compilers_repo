@@ -12,6 +12,9 @@
 // Lexer implementation
 ////////////////////////////////////////////////////////////////////////
 
+int isquotation(int next) {
+  return next != '"';
+}
 Lexer::Lexer(FILE *in, const std::string &filename)
   : m_in(in)
   , m_filename(filename)
@@ -239,9 +242,18 @@ Node *Lexer::read_token() {
       }
       SyntaxError::raise(get_current_loc(), "Unrecognized character '%c'", c);      
     // add cases for other kinds of tokens
+    case '"': {
+      lexeme.pop_back();
+
+      auto tok = read_continued_token(TOK_STRING, lexeme, line, col, &isquotation);
+      read(); // skip quotation mark
+      return tok;
+    }
+
     default:
       SyntaxError::raise(get_current_loc(), "Unrecognized character '%c'", c);
     }
+
   }
 }
 // Helper function to create a Node object to represent a token.
@@ -259,7 +271,30 @@ Node *Lexer::read_continued_token(enum TokenKind kind, const std::string &lexeme
   std::string lexeme(lexeme_start);
   for (;;) {
     int c = read();
-    if (c >= 0 && pred(c)) {
+    int escaped = 0;
+
+    if (c == '\\') {
+      int c_next = read();
+      
+      switch(c_next) {
+        case 'n':
+          c = '\n';
+          break;
+        case 't':
+          c = '\t';
+          break;
+        case 'r':
+          c = '\r';
+          break;
+        case '"':
+          escaped=1;
+          c='"';
+          break;
+        
+      }
+    }
+
+    if (c >= 0 && (escaped || pred(c))) {
       // token has finished
       lexeme.push_back(char(c));
     } else {
@@ -288,3 +323,4 @@ Node* Lexer::read_next_token(enum TokenKind kind, const std::string &lexeme_star
 
   return token_create(kind, lexeme, line, col);
 }
+

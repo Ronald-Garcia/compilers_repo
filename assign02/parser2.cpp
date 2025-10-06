@@ -403,6 +403,7 @@ Node *Parser2::parse_TPrime(Node *ast_) {
 Node *Parser2::parse_F() {
   // F -> ^ number
   // F -> ^ ident
+  // F -> ^ string
   // F -> ^ ( E )
 
   Node *next_tok = m_lexer->peek();
@@ -433,7 +434,13 @@ Node *Parser2::parse_F() {
 
       func_call->append_kid(ast.release());
 
-      func_call->append_kid(parse_OptArgList());
+      auto opt_arg_list = std::unique_ptr<Node>(parse_OptArgList());
+
+      if (opt_arg_list.get() != nullptr) {
+        func_call->append_kid(opt_arg_list.release());
+
+      }
+
 
       expect_and_discard(TOK_RPAREN);
       return func_call.release();
@@ -448,7 +455,17 @@ Node *Parser2::parse_F() {
     std::unique_ptr<Node> ast(parse_A());
     expect_and_discard(TOK_RPAREN);
     return ast.release();
-  } else {
+  } else if (tag == TOK_STRING) {
+    std::unique_ptr<Node> string = std::unique_ptr<Node>(expect(static_cast<enum TokenKind>(TOK_STRING)));
+
+    std::unique_ptr<Node> ast_string = std::unique_ptr<Node>(new Node(AST_STRING));
+
+    ast_string->set_loc(string->get_loc());
+    ast_string->set_str(string->get_str());
+
+    return ast_string.release();
+  }
+  else {
     SyntaxError::raise(next_tok->get_loc(), "Invalid primary expression");
   }
 }

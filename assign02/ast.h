@@ -31,7 +31,7 @@ enum ASTKind {
   AST_WHILE,
   AST_FNCALL,
   AST_ARGLIST,
-
+  AST_STRING
   // add members for other AST node kinds
 };
 

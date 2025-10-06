@@ -1,0 +1,14 @@
+var b; 
+b = 3; 
+if (b) 
+{ 
+    var b;
+    b = 2;
+    print(b);
+    var q; 
+} while (b) { 
+    b = b - 1; 
+    println(b);
+}
+var po; 
+b;

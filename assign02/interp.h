@@ -2,6 +2,7 @@
 #define INTERP_H
 
 #include "value.h"
+#include "string.h"
 #include "environment.h"
 class Node;
 class Location;
@@ -24,6 +25,16 @@ private:
   static Value intrinsic_print(Value args[], unsigned num_args,  const Location &loc, Interpreter* interp);
   static Value intrinsic_println(Value args[], unsigned num_args,  const Location &loc, Interpreter* interp);
   static Value intrinsic_readint(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+  static Value intrinsic_mkarr(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+  static Value intrinsic_len(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+  static Value intrinsic_get(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+  static Value intrinsic_set(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+  static Value intrinsic_push(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+  static Value intrinsic_pop(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+
+  static Value intrinsic_strcat(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+  static Value intrinsic_substr(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
+  static Value intrinsic_strlen(Value args[], unsigned num_args, const Location &loc, Interpreter* interp);
 
 };
 

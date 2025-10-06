@@ -17,7 +17,7 @@ int Environment::define_variable(std::string name) {
   int check = m_vars.count(name);
 
   if (check) {
-    return -1;
+    return 1;
   }
 
 
@@ -30,7 +30,7 @@ Value* Environment::get_local_variable(std::string name) {
   if (!check) {
     return nullptr;
   }
-  return &m_vars.at(name);
+  return &(m_vars.at(name));
 }
 
 int Environment::assign_variable(std::string name, Value& val) {
@@ -40,7 +40,7 @@ int Environment::assign_variable(std::string name, Value& val) {
   if (!check && m_parent != nullptr) {
     return m_parent->assign_variable(name, val);
   } else if (!check) {
-    return -1;
+    return 1;
   }
   m_vars[name] = val;
   return 0;
