@@ -84,6 +84,8 @@ private:
   void leave_scope();
 
   // TODO: add helper functions
+  void traverse_declarator_list(Node* root, std::shared_ptr<Type> t);
+
 };
 
 #endif // SEMANTIC_ANALYSIS_H
